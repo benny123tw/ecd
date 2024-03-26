@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use std::{
     fs::read_dir,
-    path::{self, Path, PathBuf},
+    path::{Path, PathBuf},
     process::Command,
 };
 
@@ -80,11 +80,7 @@ fn main() {
                         .to_string();
 
                     // Open the exercise in Visual Studio Code
-                    Command::new("powershell")
-                        .current_dir(format!("{}", path_str))
-                        .args(&["/C", "code", "."])
-                        .spawn()
-                        .expect("Failed to execute command");
+                    open_vscode(&path_str)
                 } else {
                     let error = String::from_utf8_lossy(&output.stderr);
                     println!("{}", error);
@@ -139,7 +135,7 @@ fn main() {
                         let file_name = file.file_name();
                         let file_name = file_name.to_str().unwrap();
                         if file_name.ends_with(".rs") {
-                            exercise_path = file.path(); 
+                            exercise_path = file.path();
                             break;
                         }
                     }
@@ -219,4 +215,22 @@ fn main() {
             println!("No command provided");
         }
     }
+}
+
+#[cfg(target_os = "windows")]
+fn open_vscode(path: &str) {
+    Command::new("powershell")
+        .current_dir(format!("{}", path_str))
+        .args(&["/C", "code", "."])
+        .spawn()
+        .expect("Failed to execute command");
+}
+
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+fn open_vscode(path: &str) {
+    Command::new("code")
+        .current_dir(path)
+        .args(&["."])
+        .spawn()
+        .expect("Failed to execute command");
 }
