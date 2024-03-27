@@ -104,27 +104,88 @@ fn main() {
                 println!("Submitting the exercise for the track: {}", track);
 
                 let path = Path::new(".");
-                let mut exercise_path = PathBuf::from(path);
+                let mut exercise_paths: Vec<PathBuf> = Vec::new();
 
                 // Check if the current directory is an exercise directory
                 if *track == "rust" {
-                    let source_dir = exercise_path.join("src/");
+                    let source_dir = path.join("src/");
                     let files = read_dir(source_dir);
                     for file in files.unwrap() {
                         let file = file.unwrap();
                         let file_name = file.file_name();
                         let file_name = file_name.to_str().unwrap();
                         if file_name.ends_with(".rs") {
-                            exercise_path = file.path();
-                            break;
+                            exercise_paths.push(file.path());
                         }
                     }
                 }
 
-                println!("Submitting the exercise: {:?}", exercise_path);
+                if ["javascript", "typescript", "js", "ts"].contains(&track.as_str()) {
+                    // JavaScript track
+                    let source_dir = path.join("src/");
+                    let files = read_dir(source_dir);
+                    for file in files.unwrap() {
+                        let file = file.unwrap();
+                        let file_name = file.file_name();
+                        let file_name = file_name.to_str().unwrap();
+                        if file_name.ends_with(".js") || file_name.ends_with(".ts") {
+                            exercise_paths.push(file.path());
+                        }
+                    }
+                }
+
+                if *track == "java" {
+                    // Java track
+                    let source_dir = path.join("src/main/java");
+                    let files = read_dir(source_dir);
+                    for file in files.unwrap() {
+                        let file = file.unwrap();
+                        let file_name = file.file_name();
+                        let file_name = file_name.to_str().unwrap();
+                        if file_name.ends_with(".java") {
+                            exercise_paths.push(file.path());
+                        }
+                    }
+                }
+
+                if *track == "gleam" {
+                    // Gleam track
+                    let source_dir = path.join("src/");
+                    let files = read_dir(source_dir);
+                    for file in files.unwrap() {
+                        let file = file.unwrap();
+                        let file_name = file.file_name();
+                        let file_name = file_name.to_str().unwrap();
+                        if file_name.ends_with(".gleam") {
+                            exercise_paths.push(file.path());
+                        }
+                    }
+                }
+
+                if *track == "go" {
+                    // Go track
+                    let source_dir = path.join("src/main/");
+                    let files = read_dir(source_dir);
+                    for file in files.unwrap() {
+                        let file = file.unwrap();
+                        let file_name = file.file_name();
+                        let file_name = file_name.to_str().unwrap();
+                        if file_name.ends_with(".go") {
+                            exercise_paths.push(file.path());
+                        }
+                    }
+                }
+
+                let submit_paths_str = exercise_paths
+                    .iter()
+                    .map(|p| p.to_string_lossy())
+                    .collect::<Vec<_>>()
+                    .join(" ");
+
+                println!("Submitting the exercise: {:?}", submit_paths_str);
                 Command::new("exercism")
                     .arg("submit")
-                    .arg(exercise_path)
+                    .arg(submit_paths_str)
                     .spawn()
                     .expect("Failed to execute command");
             }
@@ -132,35 +193,33 @@ fn main() {
                 println!("Submitting the exercise for the auto-detected track");
 
                 let path = Path::new(".");
-                let mut exercise_path = PathBuf::from(path);
+                let mut exercise_paths: Vec<PathBuf> = Vec::new();
 
                 // Check if the current directory is an exercise directory
                 if path.join("Cargo.toml").try_exists().unwrap_or(false) {
                     // Rust track
-                    let source_dir = exercise_path.join("src/");
+                    let source_dir = path.join("src/");
                     let files = read_dir(source_dir);
                     for file in files.unwrap() {
                         let file = file.unwrap();
                         let file_name = file.file_name();
                         let file_name = file_name.to_str().unwrap();
                         if file_name.ends_with(".rs") {
-                            exercise_path = file.path();
-                            break;
+                            exercise_paths.push(file.path());
                         }
                     }
                 }
 
                 if path.join("package.json").try_exists().unwrap_or(false) {
                     // JavaScript track
-                    let source_dir = exercise_path.join("src/");
+                    let source_dir = path.join("src/");
                     let files = read_dir(source_dir);
                     for file in files.unwrap() {
                         let file = file.unwrap();
                         let file_name = file.file_name();
                         let file_name = file_name.to_str().unwrap();
                         if file_name.ends_with(".js") || file_name.ends_with(".ts") {
-                            exercise_path = file.path();
-                            break;
+                            exercise_paths.push(file.path());
                         }
                     }
                 }
@@ -169,53 +228,56 @@ fn main() {
                     || path.join("pom.xml").try_exists().unwrap_or(false)
                 {
                     // Java track
-                    let source_dir = exercise_path.join("src/main/java");
+                    let source_dir = path.join("src/main/java");
                     let files = read_dir(source_dir);
                     for file in files.unwrap() {
                         let file = file.unwrap();
                         let file_name = file.file_name();
                         let file_name = file_name.to_str().unwrap();
                         if file_name.ends_with(".java") {
-                            exercise_path = file.path();
-                            break;
+                            exercise_paths.push(file.path());
                         }
                     }
                 }
 
                 if path.join("gleam.toml").try_exists().unwrap_or(false) {
                     // Gleam track
-                    let source_dir = exercise_path.join("src/");
+                    let source_dir = path.join("src/");
                     let files = read_dir(source_dir);
                     for file in files.unwrap() {
                         let file = file.unwrap();
                         let file_name = file.file_name();
                         let file_name = file_name.to_str().unwrap();
                         if file_name.ends_with(".gleam") {
-                            exercise_path = file.path();
-                            break;
+                            exercise_paths.push(file.path());
                         }
                     }
                 }
 
                 if path.join("go.mod").try_exists().unwrap_or(false) {
                     // Go track
-                    let source_dir = exercise_path.join("src/main/");
+                    let source_dir = path.join("src/main/");
                     let files = read_dir(source_dir);
                     for file in files.unwrap() {
                         let file = file.unwrap();
                         let file_name = file.file_name();
                         let file_name = file_name.to_str().unwrap();
                         if file_name.ends_with(".go") {
-                            exercise_path = file.path();
-                            break;
+                            exercise_paths.push(file.path());
                         }
                     }
                 }
 
-                println!("Submitting the exercise: {:?}", exercise_path);
+                let submit_paths_str = exercise_paths
+                    .iter()
+                    .map(|p| p.to_string_lossy())
+                    .collect::<Vec<_>>()
+                    .join(" ");
+
+                println!("Submitting the exercise: {:?}", submit_paths_str);
                 Command::new("exercism")
                     .arg("submit")
-                    .arg(exercise_path)
+                    .arg(submit_paths_str)
                     .spawn()
                     .expect("Failed to execute command");
             }
