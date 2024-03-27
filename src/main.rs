@@ -83,7 +83,16 @@ fn main() {
                     open_vscode(&path_str)
                 } else {
                     let error = String::from_utf8_lossy(&output.stderr);
-                    println!("{}", error);
+
+                    let exercise_directory = error
+                        .lines()
+                        .find(|line| line.starts_with("Error: directory"))
+                        .and_then(|line| line.split('\'').nth(1))
+                        .unwrap_or("");
+
+                    println!("Directory: '{}' already exists", exercise_directory);
+
+                    open_vscode(&exercise_directory);
                 }
             }
             None => {
