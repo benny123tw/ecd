@@ -220,7 +220,7 @@ fn main() {
 #[cfg(target_os = "windows")]
 fn open_vscode(path: &str) {
     Command::new("powershell")
-        .current_dir(format!("{}", path_str))
+        .current_dir(format!("{}", path))
         .args(&["/C", "code", "."])
         .spawn()
         .expect("Failed to execute command");
