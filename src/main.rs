@@ -29,6 +29,13 @@ enum Commands {
     },
 }
 
+struct TrackConfig {
+    track_name: &'static str,
+    source_dir: &'static str,
+    extensions: &'static [&'static str],
+    config_files: &'static [&'static str],
+}
+
 #[derive(Subcommand)]
 enum SubCommands {
     /// Downloading the exercise
@@ -49,6 +56,39 @@ enum SubCommands {
 
 fn main() {
     let cli = Cli::parse();
+
+    let track_configs: Vec<TrackConfig> = vec![
+        TrackConfig {
+            track_name: "rust",
+            source_dir: "src/",
+            extensions: &[".rs"],
+            config_files: &["Cargo.toml"],
+        },
+        TrackConfig {
+            track_name: "javascript",
+            source_dir: "src/",
+            extensions: &[".js", ".ts", ".cjs", ".mjs", ".cts", ".mts"],
+            config_files: &["package.json", "deno.json"],
+        },
+        TrackConfig {
+            track_name: "java",
+            source_dir: "src/main/java",
+            extensions: &[".java"],
+            config_files: &["gradlew", "pom.xml"],
+        },
+        TrackConfig {
+            track_name: "gleam",
+            source_dir: "src/",
+            extensions: &[".gleam"],
+            config_files: &["gleam.toml"],
+        },
+        TrackConfig {
+            track_name: "go",
+            source_dir: "src/main/",
+            extensions: &[".go"],
+            config_files: &["go.mod"],
+        },
+    ];
 
     match &cli.commands {
         Some(Commands::Exercism { subcommands }) => match subcommands {
@@ -106,73 +146,11 @@ fn main() {
                 let path = Path::new(".");
                 let mut exercise_paths: Vec<PathBuf> = Vec::new();
 
-                // Check if the current directory is an exercise directory
-                if *track == "rust" {
-                    let source_dir = path.join("src/");
-                    let files = read_dir(source_dir);
-                    for file in files.unwrap() {
-                        let file = file.unwrap();
-                        let file_name = file.file_name();
-                        let file_name = file_name.to_str().unwrap();
-                        if file_name.ends_with(".rs") {
-                            exercise_paths.push(file.path());
-                        }
-                    }
-                }
-
-                if ["javascript", "typescript", "js", "ts"].contains(&track.as_str()) {
-                    // JavaScript track
-                    let source_dir = path.join("src/");
-                    let files = read_dir(source_dir);
-                    for file in files.unwrap() {
-                        let file = file.unwrap();
-                        let file_name = file.file_name();
-                        let file_name = file_name.to_str().unwrap();
-                        if file_name.ends_with(".js") || file_name.ends_with(".ts") {
-                            exercise_paths.push(file.path());
-                        }
-                    }
-                }
-
-                if *track == "java" {
-                    // Java track
-                    let source_dir = path.join("src/main/java");
-                    let files = read_dir(source_dir);
-                    for file in files.unwrap() {
-                        let file = file.unwrap();
-                        let file_name = file.file_name();
-                        let file_name = file_name.to_str().unwrap();
-                        if file_name.ends_with(".java") {
-                            exercise_paths.push(file.path());
-                        }
-                    }
-                }
-
-                if *track == "gleam" {
-                    // Gleam track
-                    let source_dir = path.join("src/");
-                    let files = read_dir(source_dir);
-                    for file in files.unwrap() {
-                        let file = file.unwrap();
-                        let file_name = file.file_name();
-                        let file_name = file_name.to_str().unwrap();
-                        if file_name.ends_with(".gleam") {
-                            exercise_paths.push(file.path());
-                        }
-                    }
-                }
-
-                if *track == "go" {
-                    // Go track
-                    let source_dir = path.join("src/main/");
-                    let files = read_dir(source_dir);
-                    for file in files.unwrap() {
-                        let file = file.unwrap();
-                        let file_name = file.file_name();
-                        let file_name = file_name.to_str().unwrap();
-                        if file_name.ends_with(".go") {
-                            exercise_paths.push(file.path());
-                        }
+                for config in track_configs {
+                    if *track == config.track_name {
+                        let source_dir = path.join(config.source_dir);
+                        let new_paths = get_exercise_paths(source_dir, config.extensions);
+                        exercise_paths.extend(new_paths);
                     }
                 }
 
@@ -194,76 +172,16 @@ fn main() {
                 let path = Path::new(".");
                 let mut exercise_paths: Vec<PathBuf> = Vec::new();
 
-                // Check if the current directory is an exercise directory
-                if path.join("Cargo.toml").try_exists().unwrap_or(false) {
-                    // Rust track
-                    let source_dir = path.join("src/");
-                    let files = read_dir(source_dir);
-                    for file in files.unwrap() {
-                        let file = file.unwrap();
-                        let file_name = file.file_name();
-                        let file_name = file_name.to_str().unwrap();
-                        if file_name.ends_with(".rs") {
-                            exercise_paths.push(file.path());
-                        }
-                    }
-                }
-
-                if path.join("package.json").try_exists().unwrap_or(false) {
-                    // JavaScript track
-                    let source_dir = path.join("src/");
-                    let files = read_dir(source_dir);
-                    for file in files.unwrap() {
-                        let file = file.unwrap();
-                        let file_name = file.file_name();
-                        let file_name = file_name.to_str().unwrap();
-                        if file_name.ends_with(".js") || file_name.ends_with(".ts") {
-                            exercise_paths.push(file.path());
-                        }
-                    }
-                }
-
-                if path.join("gradlew").try_exists().unwrap_or(false)
-                    || path.join("pom.xml").try_exists().unwrap_or(false)
-                {
-                    // Java track
-                    let source_dir = path.join("src/main/java");
-                    let files = read_dir(source_dir);
-                    for file in files.unwrap() {
-                        let file = file.unwrap();
-                        let file_name = file.file_name();
-                        let file_name = file_name.to_str().unwrap();
-                        if file_name.ends_with(".java") {
-                            exercise_paths.push(file.path());
-                        }
-                    }
-                }
-
-                if path.join("gleam.toml").try_exists().unwrap_or(false) {
-                    // Gleam track
-                    let source_dir = path.join("src/");
-                    let files = read_dir(source_dir);
-                    for file in files.unwrap() {
-                        let file = file.unwrap();
-                        let file_name = file.file_name();
-                        let file_name = file_name.to_str().unwrap();
-                        if file_name.ends_with(".gleam") {
-                            exercise_paths.push(file.path());
-                        }
-                    }
-                }
-
-                if path.join("go.mod").try_exists().unwrap_or(false) {
-                    // Go track
-                    let source_dir = path.join("src/main/");
-                    let files = read_dir(source_dir);
-                    for file in files.unwrap() {
-                        let file = file.unwrap();
-                        let file_name = file.file_name();
-                        let file_name = file_name.to_str().unwrap();
-                        if file_name.ends_with(".go") {
-                            exercise_paths.push(file.path());
-                        }
+                for config in track_configs {
+                    if config
+                        .config_files
+                        .iter()
+                        .any(|&file| path.join(file).try_exists().unwrap_or(false))
+                    {
+                        println!("Detected track: {}", config.track_name);
+                        let source_dir = path.join(config.source_dir);
+                        let new_paths = get_exercise_paths(source_dir, config.extensions);
+                        exercise_paths.extend(new_paths);
                     }
                 }
 
@@ -284,6 +202,20 @@ fn main() {
             println!("No command provided");
         }
     }
+}
+
+fn get_exercise_paths(source_dir: PathBuf, extensions: &[&str]) -> Vec<PathBuf> {
+    let mut exercise_paths = Vec::new();
+    let files = read_dir(source_dir);
+    for file in files.unwrap() {
+        let file = file.unwrap();
+        let file_name = file.file_name();
+        let file_name = file_name.to_str().unwrap();
+        if extensions.iter().any(|&ext| file_name.ends_with(ext)) {
+            exercise_paths.push(file.path());
+        }
+    }
+    exercise_paths
 }
 
 #[cfg(target_os = "windows")]
