@@ -176,16 +176,15 @@ fn main() {
                     }
                 }
 
-                let submit_paths_str = exercise_paths
+                let exercise_paths_str: Vec<_> = exercise_paths
                     .iter()
-                    .map(|p| p.to_string_lossy())
-                    .collect::<Vec<_>>()
-                    .join(" ");
+                    .map(|p| p.to_str().expect("Failed to convert PathBuf to str"))
+                    .collect();
 
-                println!("Submitting the exercise: {:?}", submit_paths_str);
+                println!("Submitting the exercise: {:?}", exercise_paths_str);
                 Command::new("exercism")
                     .arg("submit")
-                    .arg(submit_paths_str)
+                    .args(&exercise_paths_str)
                     .spawn()
                     .expect("Failed to execute command");
             }
@@ -268,16 +267,15 @@ fn main() {
                     }
                 }
 
-                let submit_paths_str = exercise_paths
+                let exercise_paths_str: Vec<_> = exercise_paths
                     .iter()
-                    .map(|p| p.to_string_lossy())
-                    .collect::<Vec<_>>()
-                    .join(" ");
+                    .map(|p| p.to_str().expect("Failed to convert PathBuf to str"))
+                    .collect();
 
-                println!("Submitting the exercise: {:?}", submit_paths_str);
+                println!("Submitting the exercise: {:?}", exercise_paths_str);
                 Command::new("exercism")
                     .arg("submit")
-                    .arg(submit_paths_str)
+                    .args(&exercise_paths_str)
                     .spawn()
                     .expect("Failed to execute command");
             }
